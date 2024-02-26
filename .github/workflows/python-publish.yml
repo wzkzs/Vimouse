@@ -1,0 +1,41 @@
+name: Build Application
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        python -m venv venv
+        & .\venv\Scripts\Activate.ps1
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+
+    - name: Install PyInstaller
+      run: |
+        & .\venv\Scripts\Activate.ps1
+        pip install pyinstaller
+
+    - name: Run PyInstaller
+      run: |
+        & .\venv\Scripts\Activate.ps1
+        & .\venv\Scripts\pyinstaller.exe --clean --noconfirm --onedir --windowed --name "vimouse" --icon "./logo.ico" --add-data "./src/utils;utils/" --paths "./venv/Lib/site-packages" --distpath "./dist/" --hidden-import=json --debug=imports -F "./src/vimouse.py"
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: windows-artifact 
+        path: dist/
